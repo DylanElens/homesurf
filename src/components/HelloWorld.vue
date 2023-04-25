@@ -13,13 +13,29 @@ const decrement = () => {
     count.value -= 1
 }
 
-const upload = (event: any) => {
-    let data = new FormData()
-    data.append('file', event.files[0])
-    fetch('http://localhost:8080/upload', {
+const upload = async (event: any) => {
+    console.log(event.files.length)
+    //we are going to looop through alle the files and 
+    // for (let i = 0; i < event.files.length; i++) {
+    //     let data = new FormData();
+    //     data.append('file', event.files[i])
+    //     await fetch('http://localhost:8080/upload', {
+    //         method: 'POST',
+    //         body: data
+    //     })
+    // }
+
+    //rewrite the the above code cleaner
+    const data = new FormData()
+    for (let i = 0; i < event.files.length; i++) {
+        data.append('file', event.files[i])
+    }
+
+    await fetch('http://localhost:8080/upload', {
         method: 'POST',
         body: data
     })
+
 }
 
 onMounted(async () => {
@@ -29,6 +45,7 @@ onMounted(async () => {
 
 <template>
     <h1>{{ msg }}</h1>
+
     <pButton label="increment" :onClick="increment" />
     <pButton label="decrement" :onClick="decrement" />
     <h1>{{ count }}</h1>
