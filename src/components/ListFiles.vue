@@ -21,7 +21,7 @@ const loadData = async () => {
 
 
 const downloadFile = async (link: string, filename: string) => {
-    return await client.getFile(`download/${link.split("/")[2]}`, filename);
+    return await client.getFile(`  download/${link.split("/")[2]}`, filename);
 };
 
 onMounted(async () => {
