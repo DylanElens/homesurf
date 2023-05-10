@@ -19,17 +19,19 @@ const loadData = async () => {
     files.value = (await client.get("files")).data;
 };
 
-
 const downloadFile = async (link: string, filename: string) => {
     return await client.getFile(`download/${link.split("/")[2]}`, filename);
+};
+
+const deleteFile = async (id: number) => {
+    await client.delete(`files/${id}`);
+    await loadData();
 };
 
 onMounted(async () => {
     await loadData();
     console.log(files.value);
 });
-
-
 </script>
 
 <template>
@@ -51,6 +53,7 @@ onMounted(async () => {
         <pColumn header="download">
             <template #body="{ data }">
                 <pButton type="button" label="dowload" @click="downloadFile(data.file_path, data.file_name)"></pButton>
+                <pButton type="delete" class="mx-2" severity="danger" label="delete" @click="deleteFile(data.id)"></pButton>
             </template>
         </pColumn>
     </pDataTable>
