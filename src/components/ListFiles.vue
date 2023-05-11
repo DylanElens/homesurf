@@ -1,27 +1,28 @@
 <script setup lang="ts">
-import { computed } from "@vue/reactivity";
 import { ref, onMounted } from "vue";
 import { client } from "../api-client";
 import { UploadFile } from "../components/listfiles.types";
 
 const files = ref<UploadFile>();
-const selectedProduct = ref([]);
+const selectedFiles = ref<UploadFile[]>([]);
 
-const showBulkDownload = computed(() => {
-    return selectedProduct.value.length > 0;
-});
 const upload = async (event: any) => {
     const data = new FormData();
     for (let i = 0; i < event.files.length; i++) {
         data.append("file", event.files[i]);
     }
 
-    await client.post("http://localhost:8080/upload", data);
+    await client.post("/upload", data);
     await loadData();
 };
 
 const loadData = async () => {
     files.value = (await client.get("files")).data;
+};
+
+const bulkDownload = async () => {
+    let file_ids = selectedFiles.value.map((file) => file.id);
+    await client.post("bulk-download-files", { file_ids: file_ids });
 };
 
 const downloadFile = async (link: string, filename: string) => {
@@ -35,22 +36,22 @@ const deleteFile = async (id: number) => {
 
 onMounted(async () => {
     await loadData();
-    console.log(files.value);
 });
 </script>
 
 <template>
-    <pFileUpload name="demo[]" @uploader="upload($event)" :multiple="true" customUpload>
+    <pFileUpload @uploader="upload($event)" :multiple="true" customUpload>
         <template #empty>
             <p>Drag and drop files to here to upload.</p>
         </template>
     </pFileUpload>
     <div class="card">
-        <pDataTable v-model:selection="selectedProduct" class="my-3" :value="files" tableStyle="min-width: 50rem">
+        <pDataTable v-model:selection="selectedFiles" class="my-3" :value="files" tableStyle="min-width: 50rem">
             <template #header>
                 <div class="flex flex-wrap align-items-center justify-content-between gap-2">
                     <span class="text-xl text-900 font-bold">Products</span>
-                    <pButton icon="pi pi-download" :disabled="selectedProduct.length <= 0" rounded raised />
+                    <pButton icon="pi pi-download" :disabled="selectedFiles.length <= 0" rounded raised
+                        @click="bulkDownload" />
                 </div>
             </template>
             <pColumn selectionMode="multiple" headerStyle="width: 3rem"> </pColumn>
@@ -64,8 +65,9 @@ onMounted(async () => {
             </pColumn>
             <pColumn header="download">
                 <template #body="{ data }">
-                    <pButton type="button" label="dowload" @click="downloadFile(data.file_path, data.file_name)"></pButton>
-                    <pButton type="delete" class="mx-2" severity="danger" label="delete" @click="deleteFile(data.id)">
+                    <pButton type="button" class="m-2" icon="pi pi-download"
+                        @click="downloadFile(data.file_path, data.file_name)"></pButton>
+                    <pButton type="button" class="m-2" severity="danger" icon="pi pi-trash" @click="deleteFile(data.id)">
                     </pButton>
                 </template>
             </pColumn>
